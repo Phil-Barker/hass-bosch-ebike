@@ -1,0 +1,44 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Bosch eBike Setup",
+        "description": "Connect your Bosch eBike with ConnectModule to Home Assistant. You will be redirected to Bosch to authenticate."
+      },
+      "auth": {
+        "title": "Authenticate with Bosch",
+        "description": "1. Click this link to authenticate: [{auth_url}]({auth_url})\n\n2. Log in with your Bosch Flow account\n\n3. After logging in, you'll see an error page (this is normal!)\n\n4. Copy the 'code' from the URL in your browser\n   Example: onebikeconnect://oauthredirect?code=**THIS_PART**\n\n5. Paste the code below:",
+        "data": {
+          "code": "Authorization Code"
+        }
+      },
+      "select_bike": {
+        "title": "Select Your eBike",
+        "description": "Multiple eBikes found. Please select which one to add.",
+        "data": {
+          "bike_id": "eBike"
+        }
+      }
+    },
+    "error": {
+      "auth_error": "Authentication failed. Please try again.",
+      "api_error": "Failed to communicate with Bosch servers. Please try again later.",
+      "no_bikes": "No eBikes found on your account. Make sure your bike has a ConnectModule and is registered in the Bosch Flow app.",
+      "bike_not_found": "Selected bike not found.",
+      "unknown": "An unexpected error occurred. Please try again."
+    },
+    "abort": {
+      "already_configured": "This eBike is already configured.",
+      "bike_not_found": "The selected bike could not be found."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Bosch eBike Options",
+        "description": "Configure options for your eBike integration."
+      }
+    }
+  }
+}
+

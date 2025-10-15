@@ -1,0 +1,45 @@
+# Environment and secrets
+.env
+tokens.json
+*_tokens.json
+
+# Python
+*.pyc
+__pycache__/
+*.log
+venv/
+env/
+*.egg-info/
+
+# Development folders (local exploration only)
+docs/
+exploration/
+
+# Data files (from API testing)
+activities_*.json
+activity_detail_*.json
+*_2025*.json
+battery_*.json
+*_output.txt
+*_results.json
+*_exploration.json
+latest_*.json
+
+# Docker (development only)
+.dockerignore
+docker-compose.yml
+Dockerfile
+
+# Build files
+Makefile
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
