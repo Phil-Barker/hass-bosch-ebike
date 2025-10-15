@@ -40,3 +40,8 @@ CONF_BIKE_NAME = "bike_name"
 CONF_REFRESH_TOKEN = "refresh_token"
 CONF_CODE = "code"
 
+# Options
+CONF_DISTANCE_UNIT = "distance_unit"
+DISTANCE_UNIT_KM = "km"
+DISTANCE_UNIT_MI = "mi"
+

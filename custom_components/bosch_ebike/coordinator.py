@@ -76,6 +76,8 @@ class BoschEBikeDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             bike_attrs = profile_data.get("data", {}).get("attributes", {})
             battery = bike_attrs.get("batteries", [{}])[0]
             drive_unit = bike_attrs.get("driveUnit", {})
+            connected_module = bike_attrs.get("connectedModule", {})
+            remote_control = bike_attrs.get("remoteControl", {})
             
             # Start with profile data
             combined = {
@@ -85,14 +87,38 @@ class BoschEBikeDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                     "total_capacity_wh": battery.get("totalEnergy"),
                     "is_charging": battery.get("isCharging"),
                     "is_charger_connected": battery.get("isChargerConnected"),
-                    "is_light_reserve": battery.get("isLightReserveReached"),
                     "charge_cycles_total": battery.get("numberOfFullChargeCycles", {}).get("total"),
                     "delivered_lifetime_wh": battery.get("deliveredWhOverLifetime"),
+                    "product_name": battery.get("productName"),
+                    "software_version": battery.get("softwareVersion"),
                 },
                 "bike": {
                     "total_distance_m": drive_unit.get("totalDistanceTraveled"),
                     "is_locked": drive_unit.get("lock", {}).get("isLocked"),
-                    "light_on": drive_unit.get("bikeLight", {}).get("isSwitchedOn"),
+                    "lock_enabled": drive_unit.get("lock", {}).get("isEnabled"),
+                    "alarm_enabled": connected_module.get("isAlarmFeatureEnabled"),
+                },
+                "components": {
+                    "drive_unit": {
+                        "product_name": drive_unit.get("productName"),
+                        "software_version": drive_unit.get("softwareVersion"),
+                        "serial_number": drive_unit.get("serialNumber"),
+                    },
+                    "battery": {
+                        "product_name": battery.get("productName"),
+                        "software_version": battery.get("softwareVersion"),
+                        "serial_number": battery.get("serialNumber"),
+                    },
+                    "connected_module": {
+                        "product_name": connected_module.get("productName"),
+                        "software_version": connected_module.get("softwareVersion"),
+                        "serial_number": connected_module.get("serialNumber"),
+                    },
+                    "remote_control": {
+                        "product_name": remote_control.get("productName"),
+                        "software_version": remote_control.get("softwareVersion"),
+                        "serial_number": remote_control.get("serialNumber"),
+                    },
                 },
                 "last_update": None,
                 "live_data_available": False,

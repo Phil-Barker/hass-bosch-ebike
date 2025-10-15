@@ -45,25 +45,22 @@ BINARY_SENSORS: tuple[BoschEBikeBinarySensorEntityDescription, ...] = (
         value_fn=lambda data: data.get("battery", {}).get("is_charger_connected"),
     ),
     BoschEBikeBinarySensorEntityDescription(
-        key="battery_light_reserve",
-        translation_key="battery_light_reserve",
-        name="Battery Light Reserve",
-        device_class=BinarySensorDeviceClass.PROBLEM,
-        value_fn=lambda data: data.get("battery", {}).get("is_light_reserve"),
-    ),
-    BoschEBikeBinarySensorEntityDescription(
-        key="bike_locked",
-        translation_key="bike_locked",
-        name="Bike Locked",
+        key="lock_enabled",
+        translation_key="lock_enabled",
+        name="Lock Enabled",
         device_class=BinarySensorDeviceClass.LOCK,
-        value_fn=lambda data: data.get("bike", {}).get("is_locked"),
+        value_fn=lambda data: (
+            data.get("bike", {}).get("is_locked") 
+            if data.get("bike", {}).get("is_locked") is not None
+            else data.get("bike", {}).get("lock_enabled")
+        ),
     ),
     BoschEBikeBinarySensorEntityDescription(
-        key="light_on",
-        translation_key="light_on",
-        name="Light On",
-        device_class=BinarySensorDeviceClass.LIGHT,
-        value_fn=lambda data: data.get("bike", {}).get("light_on"),
+        key="alarm_enabled",
+        translation_key="alarm_enabled",
+        name="Alarm Enabled",
+        # No device_class - just show On/Off
+        value_fn=lambda data: data.get("bike", {}).get("alarm_enabled"),
     ),
 )
 
@@ -102,13 +99,34 @@ class BoschEBikeBinarySensor(CoordinatorEntity[BoschEBikeDataUpdateCoordinator],
         # Set unique ID
         self._attr_unique_id = f"{coordinator.bike_id}_{description.key}"
         
-        # Set device info
-        self._attr_device_info = {
+        # Build enhanced device info from component data
+        device_info = {
             "identifiers": {(DOMAIN, coordinator.bike_id)},
             "name": coordinator.bike_name,
             "manufacturer": "Bosch",
-            "model": "eBike with ConnectModule",
         }
+        
+        # Add component details if available
+        if coordinator.data and "components" in coordinator.data:
+            components = coordinator.data["components"]
+            
+            # Set model from drive unit
+            drive_unit = components.get("drive_unit", {})
+            if drive_unit.get("product_name"):
+                device_info["model"] = drive_unit["product_name"]
+            
+            # Add software version
+            if drive_unit.get("software_version"):
+                device_info["sw_version"] = f"DU: {drive_unit['software_version']}"
+            
+            # Add serial number
+            if drive_unit.get("serial_number"):
+                device_info["serial_number"] = drive_unit["serial_number"]
+        
+        if not device_info.get("model"):
+            device_info["model"] = "eBike with ConnectModule"
+            
+        self._attr_device_info = device_info
 
     @property
     def is_on(self) -> bool | None:

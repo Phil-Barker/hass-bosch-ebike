@@ -19,10 +19,16 @@ from homeassistant.const import (
     UnitOfLength,
 )
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .const import DOMAIN
+from .const import (
+    DOMAIN,
+    CONF_DISTANCE_UNIT,
+    DISTANCE_UNIT_KM,
+    DISTANCE_UNIT_MI,
+)
 from .coordinator import BoschEBikeDataUpdateCoordinator
 
 _LOGGER = logging.getLogger(__name__)
@@ -106,6 +112,39 @@ SENSORS: tuple[BoschEBikeSensorEntityDescription, ...] = (
             else None
         ),
     ),
+    # Diagnostic sensors (disabled by default)
+    BoschEBikeSensorEntityDescription(
+        key="drive_unit_software_version",
+        translation_key="drive_unit_software_version",
+        name="Drive Unit Software",
+        entity_category=EntityCategory.DIAGNOSTIC,
+        entity_registry_enabled_default=False,
+        value_fn=lambda data: data.get("components", {}).get("drive_unit", {}).get("software_version"),
+    ),
+    BoschEBikeSensorEntityDescription(
+        key="battery_software_version",
+        translation_key="battery_software_version",
+        name="Battery Software",
+        entity_category=EntityCategory.DIAGNOSTIC,
+        entity_registry_enabled_default=False,
+        value_fn=lambda data: data.get("components", {}).get("battery", {}).get("software_version"),
+    ),
+    BoschEBikeSensorEntityDescription(
+        key="connected_module_software_version",
+        translation_key="connected_module_software_version",
+        name="ConnectModule Software",
+        entity_category=EntityCategory.DIAGNOSTIC,
+        entity_registry_enabled_default=False,
+        value_fn=lambda data: data.get("components", {}).get("connected_module", {}).get("software_version"),
+    ),
+    BoschEBikeSensorEntityDescription(
+        key="remote_control_software_version",
+        translation_key="remote_control_software_version",
+        name="Remote Control Software",
+        entity_category=EntityCategory.DIAGNOSTIC,
+        entity_registry_enabled_default=False,
+        value_fn=lambda data: data.get("components", {}).get("remote_control", {}).get("software_version"),
+    ),
 )
 
 
@@ -118,7 +157,7 @@ async def async_setup_entry(
     coordinator: BoschEBikeDataUpdateCoordinator = hass.data[DOMAIN][entry.entry_id]["coordinator"]
     
     entities = [
-        BoschEBikeSensor(coordinator, description)
+        BoschEBikeSensor(coordinator, description, entry)
         for description in SENSORS
     ]
     
@@ -130,26 +169,68 @@ class BoschEBikeSensor(CoordinatorEntity[BoschEBikeDataUpdateCoordinator], Senso
 
     entity_description: BoschEBikeSensorEntityDescription
     _attr_has_entity_name = True
+    _attr_native_unit_of_measurement = None  # Will be computed dynamically
 
     def __init__(
         self,
         coordinator: BoschEBikeDataUpdateCoordinator,
         description: BoschEBikeSensorEntityDescription,
+        entry: ConfigEntry,
     ) -> None:
         """Initialize the sensor."""
         super().__init__(coordinator)
         self.entity_description = description
+        self._entry = entry
         
         # Set unique ID
         self._attr_unique_id = f"{coordinator.bike_id}_{description.key}"
         
-        # Set device info
-        self._attr_device_info = {
+        # Build enhanced device info from component data
+        device_info = {
             "identifiers": {(DOMAIN, coordinator.bike_id)},
             "name": coordinator.bike_name,
             "manufacturer": "Bosch",
-            "model": "eBike with ConnectModule",
         }
+        
+        # Add component details if available
+        if coordinator.data and "components" in coordinator.data:
+            components = coordinator.data["components"]
+            
+            # Set model from drive unit
+            drive_unit = components.get("drive_unit", {})
+            if drive_unit.get("product_name"):
+                device_info["model"] = drive_unit["product_name"]
+            
+            # Add software version
+            if drive_unit.get("software_version"):
+                device_info["sw_version"] = f"DU: {drive_unit['software_version']}"
+            
+            # Add serial number
+            if drive_unit.get("serial_number"):
+                device_info["serial_number"] = drive_unit["serial_number"]
+        
+        if not device_info.get("model"):
+            device_info["model"] = "eBike with ConnectModule"
+            
+        self._attr_device_info = device_info
+
+    @property
+    def native_unit_of_measurement(self) -> str | None:
+        """Return the unit of measurement."""
+        # Check if this is a distance sensor and user wants miles
+        if self.entity_description.device_class == SensorDeviceClass.DISTANCE:
+            distance_unit = self._entry.options.get(CONF_DISTANCE_UNIT, DISTANCE_UNIT_KM)
+            _LOGGER.debug(
+                "Distance sensor %s: unit preference = %s, options = %s",
+                self.entity_description.key,
+                distance_unit,
+                self._entry.options,
+            )
+            if distance_unit == DISTANCE_UNIT_MI:
+                return UnitOfLength.MILES
+        
+        # Return default from entity description
+        return self.entity_description.native_unit_of_measurement
 
     @property
     def native_value(self) -> Any:
@@ -158,7 +239,18 @@ class BoschEBikeSensor(CoordinatorEntity[BoschEBikeDataUpdateCoordinator], Senso
             return None
         
         if self.entity_description.value_fn is not None:
-            return self.entity_description.value_fn(self.coordinator.data)
+            value = self.entity_description.value_fn(self.coordinator.data)
+            
+            # Convert distance from km to miles if needed
+            if (
+                value is not None
+                and self.entity_description.device_class == SensorDeviceClass.DISTANCE
+                and self._entry.options.get(CONF_DISTANCE_UNIT, DISTANCE_UNIT_KM) == DISTANCE_UNIT_MI
+            ):
+                # Convert km to miles (1 km = 0.621371 miles)
+                return round(value * 0.621371, 2)
+            
+            return value
         
         return None
 

@@ -11,7 +11,14 @@ from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.data_entry_flow import FlowResult
 
 from .api import BoschEBikeAPI, BoschEBikeAuthError, BoschEBikeAPIError
-from .const import DOMAIN, CONF_BIKE_ID, CONF_BIKE_NAME
+from .const import (
+    DOMAIN,
+    CONF_BIKE_ID,
+    CONF_BIKE_NAME,
+    CONF_DISTANCE_UNIT,
+    DISTANCE_UNIT_KM,
+    DISTANCE_UNIT_MI,
+)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -214,10 +221,16 @@ class BoschEBikeOptionsFlowHandler(config_entries.OptionsFlow):
         if user_input is not None:
             return self.async_create_entry(title="", data=user_input)
 
+        # Get current distance unit preference (default to km)
+        current_unit = self.config_entry.options.get(CONF_DISTANCE_UNIT, DISTANCE_UNIT_KM)
+
         return self.async_show_form(
             step_id="init",
             data_schema=vol.Schema({
-                # Add options here in future (e.g., scan interval)
+                vol.Required(CONF_DISTANCE_UNIT, default=current_unit): vol.In({
+                    DISTANCE_UNIT_KM: "Kilometers",
+                    DISTANCE_UNIT_MI: "Miles",
+                }),
             }),
         )
 
