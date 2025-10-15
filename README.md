@@ -4,23 +4,31 @@ Home Assistant integration for Bosch eBike with ConnectModule support. Monitor b
 
 ## 🎯 Features
 
-- **Battery Monitoring**: Real-time battery level, remaining energy, and charge cycles
+- **Battery Monitoring**: Real-time battery level, remaining energy, capacity, and charge cycles
 - **Charging Status**: Know when bike is charging and charger is connected
-- **Range Estimates**: See range for each assist mode (Eco, Tour, Sport, Turbo)
-- **Smart Charging**: Stop charging at optimal level (e.g., 80%) for battery health
+- **Distance Tracking**: Total distance traveled with lifetime energy delivered
+- **Lock & Alarm Status**: Monitor bike lock and alarm feature status
+- **Smart Charging**: Create automations to stop charging at optimal level (e.g., 80%)
 - **Multiple Bikes**: Support for multiple eBikes on one account
 - **Auto Updates**: Data refreshes every 5 minutes via ConnectModule
+- **Component Info**: View software versions and serial numbers for all bike components
 
 ## 📁 Project Structure
 
-```
-├── custom_components/bosch_ebike/  # Home Assistant integration (in development)
-├── docs/                           # Complete documentation
-│   ├── HOME_ASSISTANT_INTEGRATION_GUIDE.md  # Main technical guide
-│   ├── QUICK_REFERENCE.md                   # Code snippets & cheat sheet
-│   └── ...more docs...
-├── exploration/                    # API discovery scripts and test data
-├── monitor_battery.py              # Standalone battery monitor script
+```text
+├── custom_components/bosch_ebike/  # Home Assistant integration
+│   ├── __init__.py                 # Integration setup & coordinator
+│   ├── manifest.json               # Integration metadata
+│   ├── config_flow.py              # OAuth setup flow
+│   ├── coordinator.py              # Data update coordinator
+│   ├── sensor.py                   # Sensor entities
+│   ├── binary_sensor.py            # Binary sensor entities
+│   ├── api.py                      # Bosch API client
+│   ├── const.py                    # Constants
+│   └── strings.json                # UI strings
+├── deploy-dev.sh                   # Development deployment script
+├── .env.example                    # Configuration template
+├── DEPLOYMENT.md                   # Developer deployment guide
 ├── requirements.txt                # Python dependencies
 └── README.md                       # This file
 ```
@@ -34,25 +42,7 @@ Home Assistant integration for Bosch eBike with ConnectModule support. Monitor b
 - Bosch Flow account
 - Home Assistant 2023.1+
 
-### Test the API
-
-Before installing the integration, test that your bike is accessible:
-
-```bash
-# Install dependencies
-pip install -r requirements.txt
-
-# Authenticate (will open browser)
-# Follow the authentication flow to get tokens
-
-# Monitor battery status
-python3 monitor_battery.py
-
-# Continuous monitoring (updates every 60 seconds)
-python3 monitor_battery.py monitor
-```
-
-### Install Integration
+### Installation
 
 #### Development/Testing Deployment
 
@@ -74,13 +64,23 @@ source .env && ./deploy-dev.sh
 **📖 See [DEPLOYMENT.md](DEPLOYMENT.md) for detailed deployment instructions.**
 
 After deployment:
-- Settings → Devices & Services → Add Integration → "Bosch eBike"
 
-#### End User Installation (Future)
+1. Restart Home Assistant
+2. Go to: Settings → Devices & Services → Add Integration
+3. Search for "Bosch eBike"
+4. Follow the OAuth authentication flow
 
-Once published, users can install via:
-- **HACS** (Home Assistant Community Store) - recommended
-- **Manual:** Copy `custom_components/bosch_ebike` to config directory
+#### Manual Installation
+
+For end users without SSH access:
+
+1. Copy the `custom_components/bosch_ebike` folder to your Home Assistant `config/custom_components/` directory
+2. Restart Home Assistant
+3. Add the integration via Settings → Devices & Services
+
+#### HACS Installation (Coming Soon)
+
+We're working on getting this integration added to HACS for easier installation!
 
 ## 📊 Example Automation
 
@@ -107,30 +107,18 @@ automation:
           message: "Battery at {{ states('sensor.my_ebike_battery') }}% - optimal charge reached"
 ```
 
-## 📚 Documentation
+## ✅ What's Included
 
-### For Developers
+This integration provides complete monitoring for your Bosch eBike:
 
-- **[HOME_ASSISTANT_INTEGRATION_GUIDE.md](docs/HOME_ASSISTANT_INTEGRATION_GUIDE.md)** - Complete technical reference
-- **[QUICK_REFERENCE.md](docs/QUICK_REFERENCE.md)** - API endpoints and code snippets
-- **[FINAL_ANSWER.md](docs/FINAL_ANSWER.md)** - Discovery summary and authentication guide
-
-### For Users
-
-- **[HOW_TO_ENABLE_LIVE_SOC.md](docs/HOW_TO_ENABLE_LIVE_SOC.md)** - Enable live battery data in Flow app
-- **[BATTERY_STATUS_SOLUTION.md](docs/BATTERY_STATUS_SOLUTION.md)** - Understanding battery data
-
-## 🔧 Development Status
-
-- [x] API Discovery & Documentation
-- [x] Authentication (OAuth 2.0 with PKCE)
-- [x] Battery Data Polling
-- [x] Working Test Scripts
-- [ ] **Phase 1: HA Integration Setup** ← IN PROGRESS
-- [ ] Phase 2: Config Flow
-- [ ] Phase 3: Data Coordinator
-- [ ] Phase 4: Entities (Sensors & Binary Sensors)
-- [ ] Phase 5: Release & Testing
+- ✅ **OAuth 2.0 Authentication** - Secure login with your Bosch Flow account
+- ✅ **Battery Monitoring** - Level, capacity, remaining energy, charge cycles
+- ✅ **Charging Control** - Track charging status for smart automation
+- ✅ **Distance Tracking** - Odometer and lifetime energy statistics
+- ✅ **Security Features** - Lock and alarm status monitoring
+- ✅ **Auto Updates** - Data refreshes every 5 minutes via ConnectModule
+- ✅ **Multi-Bike Support** - Manage multiple eBikes from one account
+- ✅ **Component Details** - View software versions and serial numbers
 
 ## 🛠️ API Endpoints
 
@@ -148,28 +136,40 @@ GET https://obc-rider-profile.prod.connected-biking.cloud/v1/state-of-charge/{bi
 ## 📈 Entities Created
 
 ### Sensors
-- `sensor.{bike}_battery` - Battery level (%)
-- `sensor.{bike}_remaining_energy` - Remaining energy (Wh)
-- `sensor.{bike}_range_eco` - Range in Eco mode (km)
-- `sensor.{bike}_range_tour` - Range in Tour mode (km)
-- `sensor.{bike}_range_sport` - Range in Sport mode (km)
-- `sensor.{bike}_range_turbo` - Range in Turbo mode (km)
-- `sensor.{bike}_odometer` - Total distance (km)
-- `sensor.{bike}_charge_cycles` - Charge cycle count
+
+- **Battery Level** - Battery percentage (%)
+- **Battery Remaining Energy** - Remaining energy (Wh)
+- **Battery Capacity** - Total battery capacity (Wh)
+- **Reachable Range** - Estimated range (km) - *disabled by default, only available when bike is online*
+- **Total Distance** - Odometer reading (km)
+- **Charge Cycles** - Number of charge cycles
+- **Lifetime Energy Delivered** - Total energy delivered over bike lifetime (kWh)
 
 ### Binary Sensors
-- `binary_sensor.{bike}_charging` - Is currently charging
-- `binary_sensor.{bike}_charger_connected` - Is charger plugged in
-- `binary_sensor.{bike}_lock` - Lock status (if supported)
+
+- **Battery Charging** - Is currently charging
+- **Charger Connected** - Is charger plugged in
+- **Lock Enabled** - Lock feature status
+- **Alarm Enabled** - Alarm feature status
+
+### Diagnostic Entities *(disabled by default)*
+
+- **Drive Unit Software** - Drive unit software version
+- **Battery Software** - Battery software version
+- **ConnectModule Software** - ConnectModule software version
+- **Remote Control Software** - Remote control software version
 
 ## 🤝 Contributing
 
-This integration is in active development. Contributions welcome!
+Contributions are welcome! Whether it's bug fixes, new features, or documentation improvements:
 
 1. Fork the repository
-2. Create a feature branch
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
 3. Make your changes
-4. Submit a pull request
+4. Test with your own eBike setup
+5. Submit a pull request
+
+See [DEPLOYMENT.md](DEPLOYMENT.md) for development setup instructions.
 
 ## 📝 License
 
@@ -181,12 +181,21 @@ MIT License - See LICENSE file for details
 - ioBroker Bosch eBike adapter community for inspiration
 - Home Assistant community
 
-## 📞 Support
+## ☕ Support This Project
 
-- **Issues**: GitHub Issues
-- **Documentation**: See `docs/` folder
-- **Testing**: Use `monitor_battery.py` script
+If this integration helps you optimize your eBike charging and you'd like to support continued development:
+
+[![Buy Me A Coffee](https://img.shields.io/badge/Buy%20Me%20A%20Coffee-support-yellow.svg?style=for-the-badge&logo=buy-me-a-coffee)](https://buymeacoffee.com/philbarker)
+
+Your support helps maintain the project and keeps the coffee flowing! ☕
+
+## 📞 Support & Help
+
+- **Issues**: [GitHub Issues](https://github.com/Phil-Barker/hass-bosch-ebike/issues)
+- **Questions**: Feel free to open a discussion or issue
+- **Contributing**: Pull requests welcome!
 
 ---
 
-**Current Phase**: Building Home Assistant integration (Phase 1) 🚧
+**Status**: ✅ Integration Complete - Phases 1 & 2 Done!  
+Now available for real-world use! 🚲⚡
