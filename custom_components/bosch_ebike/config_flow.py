@@ -20,6 +20,27 @@ CONF_CODE_VERIFIER = "code_verifier"
 CONF_REFRESH_TOKEN = "refresh_token"
 
 
+def _build_bike_name(bike: dict[str, Any]) -> str:
+    """Build a descriptive bike name from bike data."""
+    attrs = bike.get("attributes", {})
+    brand_name = attrs.get("brandName", "eBike")
+    drive_unit = attrs.get("driveUnit", {})
+    drive_unit_name = drive_unit.get("productName")
+    
+    # Try to get frame number for uniqueness
+    frame_number = attrs.get("frameNumber")
+    
+    if drive_unit_name:
+        # e.g., "Cube (Performance CX)"
+        return f"{brand_name} ({drive_unit_name})"
+    elif frame_number and len(frame_number) >= 4:
+        # e.g., "Cube (...1234)" - last 4 digits of frame number
+        return f"{brand_name} (...{frame_number[-4:]})"
+    else:
+        # Just the brand name
+        return brand_name
+
+
 class BoschEBikeConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     """Handle a config flow for Bosch eBike."""
 
@@ -96,7 +117,7 @@ class BoschEBikeConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 if len(self._bikes) == 1:
                     bike = self._bikes[0]
                     bike_id = bike["id"]
-                    bike_name = bike.get("attributes", {}).get("brandName", "eBike")
+                    bike_name = _build_bike_name(bike)
                     
                     return self.async_create_entry(
                         title=bike_name,
@@ -145,7 +166,7 @@ class BoschEBikeConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             if not bike:
                 return self.async_abort(reason="bike_not_found")
             
-            bike_name = bike.get("attributes", {}).get("brandName", "eBike")
+            bike_name = _build_bike_name(bike)
             
             return self.async_create_entry(
                 title=bike_name,
@@ -159,8 +180,7 @@ class BoschEBikeConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         
         # Build bike selection options
         bike_options = {
-            bike["id"]: f"{bike.get('attributes', {}).get('brandName', 'eBike')} "
-                        f"({bike.get('attributes', {}).get('driveUnit', {}).get('productName', 'Unknown')})"
+            bike["id"]: _build_bike_name(bike)
             for bike in self._bikes
         }
         

@@ -37,4 +37,6 @@ ASSIST_MODES = ["eco", "tour", "sport", "turbo"]
 # Config flow
 CONF_BIKE_ID = "bike_id"
 CONF_BIKE_NAME = "bike_name"
+CONF_REFRESH_TOKEN = "refresh_token"
+CONF_CODE = "code"
 

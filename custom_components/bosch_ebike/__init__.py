@@ -7,15 +7,16 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
 from .api import BoschEBikeAPI
-from .const import DOMAIN, CONF_BIKE_ID, CONF_BIKE_NAME
+from .const import DOMAIN, CONF_BIKE_ID, CONF_BIKE_NAME, CONF_REFRESH_TOKEN
+from .coordinator import BoschEBikeDataUpdateCoordinator
 
 _LOGGER = logging.getLogger(__name__)
 
-# Platforms to set up (Phase 2 - will be enabled when sensors are created)
-# PLATFORMS: list[Platform] = [
-#     Platform.SENSOR,
-#     Platform.BINARY_SENSOR,
-# ]
+# Platforms to set up
+PLATFORMS: list[Platform] = [
+    Platform.SENSOR,
+    Platform.BINARY_SENSOR,
+]
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
@@ -24,7 +25,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     
     # Get tokens from config entry
     access_token = entry.data[CONF_ACCESS_TOKEN]
-    refresh_token = entry.data.get("refresh_token")
+    refresh_token = entry.data.get(CONF_REFRESH_TOKEN)
     bike_id = entry.data[CONF_BIKE_ID]
     bike_name = entry.data.get(CONF_BIKE_NAME, "eBike")
     
@@ -36,16 +37,28 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         refresh_token=refresh_token,
     )
     
-    # Store API client and bike info in hass.data
+    # Create update coordinator
+    coordinator = BoschEBikeDataUpdateCoordinator(
+        hass=hass,
+        api=api,
+        bike_id=bike_id,
+        bike_name=bike_name,
+    )
+    
+    # Fetch initial data
+    await coordinator.async_config_entry_first_refresh()
+    
+    # Store coordinator in hass.data
     hass.data.setdefault(DOMAIN, {})
     hass.data[DOMAIN][entry.entry_id] = {
+        "coordinator": coordinator,
         "api": api,
         "bike_id": bike_id,
         "bike_name": bike_name,
     }
     
-    # Set up platforms (Phase 2 - will be enabled when sensors are created)
-    # await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
+    # Set up platforms
+    await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     
     _LOGGER.info(
         "Bosch eBike integration setup complete for %s (ID: %s)",
@@ -60,13 +73,14 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Unload a config entry."""
     _LOGGER.debug("Unloading Bosch eBike integration")
     
-    # Unload platforms (Phase 2 - will be enabled when sensors are created)
-    # unload_ok = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
+    # Unload platforms
+    unload_ok = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
     
-    # Remove data
-    hass.data[DOMAIN].pop(entry.entry_id)
+    if unload_ok:
+        # Remove data
+        hass.data[DOMAIN].pop(entry.entry_id)
     
-    return True
+    return unload_ok
 
 
 async def async_reload_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
