@@ -281,10 +281,20 @@ logger:
 
 ## Support & Contributing
 
+### Get Help & Report Issues
+
 - 🐛 **Report Bugs:** [GitHub Issues](https://github.com/Phil-Barker/hass-bosch-ebike/issues)
 - 💬 **Discussions:** [GitHub Discussions](https://github.com/Phil-Barker/hass-bosch-ebike/discussions)
 - 📖 **Documentation:** [Wiki](https://github.com/Phil-Barker/hass-bosch-ebike/wiki)
 - 🤝 **Contributing:** [DEPLOYMENT.md](DEPLOYMENT.md) for development setup
+
+### Support Development
+
+If you find this integration useful and want to support its development:
+
+[![Buy Me A Coffee](https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png)](https://buymeacoffee.com/philbarker)
+
+Your support helps maintain and improve this integration. Thank you! ☕
 
 ## Disclaimer
 
