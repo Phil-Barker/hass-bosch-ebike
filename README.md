@@ -15,7 +15,7 @@ Monitor and control your Bosch eBike directly from Home Assistant! Track battery
 >
 > **This will NOT work with older Bosch eBike Connect app (Gen 3 and below).**
 
-![Bosch eBike](https://raw.githubusercontent.com/Phil-Barker/hass-bosch-ebike/main/images/screenshot.png)
+![Bosch eBike](https://raw.githubusercontent.com/Phil-Barker/hass-bosch-ebike/refs/heads/main/images/screenshot.png)
 
 ## Features
 
