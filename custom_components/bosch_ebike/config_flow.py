@@ -15,9 +15,6 @@ from .const import (
     DOMAIN,
     CONF_BIKE_ID,
     CONF_BIKE_NAME,
-    CONF_DISTANCE_UNIT,
-    DISTANCE_UNIT_KM,
-    DISTANCE_UNIT_MI,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -33,10 +30,10 @@ def _build_bike_name(bike: dict[str, Any]) -> str:
     brand_name = attrs.get("brandName", "eBike")
     drive_unit = attrs.get("driveUnit", {})
     drive_unit_name = drive_unit.get("productName")
-    
+
     # Try to get frame number for uniqueness
     frame_number = attrs.get("frameNumber")
-    
+
     if drive_unit_name:
         # e.g., "Cube (Performance CX)"
         return f"{brand_name} ({drive_unit_name})"
@@ -65,13 +62,13 @@ class BoschEBikeConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         """Handle the initial step."""
         # Generate PKCE parameters
         self._code_verifier, self._code_challenge = BoschEBikeAPI.generate_pkce_pair()
-        
+
         # Build authorization URL
         auth_url = BoschEBikeAPI.build_auth_url(self._code_challenge)
-        
+
         # Store for next step
         self.context["code_verifier"] = self._code_verifier
-        
+
         # Show auth URL and ask for code manually
         return self.async_show_form(
             step_id="auth",
@@ -87,45 +84,45 @@ class BoschEBikeConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         """Handle manual authorization code entry."""
         if user_input is None:
             return self.async_abort(reason="missing_code")
-        
+
         # Extract authorization code from user input
         authorization_code = user_input[CONF_CODE].strip()
-        
+
         # Get code_verifier from context
         code_verifier = self.context.get("code_verifier")
         if not code_verifier:
             return self.async_abort(reason="missing_verifier")
-        
+
         errors = {}
-        
+
         try:
             # Exchange code for tokens
             session = async_get_clientsession(self.hass)
             api = BoschEBikeAPI(session)
-            
+
             token_data = await api.exchange_code_for_token(
                 authorization_code,
                 code_verifier,
             )
-            
+
             # Fetch bikes
             self._bikes = await api.get_bikes()
-            
+
             if not self._bikes:
                 _LOGGER.error("No bikes found for this account")
                 errors["base"] = "no_bikes"
-            
+
             if not errors:
                 # Store tokens for next step
                 self.context["access_token"] = api.access_token
                 self.context["refresh_token"] = api.refresh_token
-                
+
                 # If only one bike, auto-select it
                 if len(self._bikes) == 1:
                     bike = self._bikes[0]
                     bike_id = bike["id"]
                     bike_name = _build_bike_name(bike)
-                    
+
                     return self.async_create_entry(
                         title=bike_name,
                         data={
@@ -135,10 +132,10 @@ class BoschEBikeConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                             CONF_BIKE_NAME: bike_name,
                         },
                     )
-                
+
                 # Multiple bikes - let user choose
                 return await self.async_step_select_bike()
-            
+
         except BoschEBikeAuthError as err:
             _LOGGER.error("Authentication failed: %s", err)
             errors["base"] = "auth_error"
@@ -148,7 +145,7 @@ class BoschEBikeConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         except Exception as err:  # pylint: disable=broad-except
             _LOGGER.exception("Unexpected error: %s", err)
             errors["base"] = "unknown"
-        
+
         # Show form again with errors or regenerate auth URL
         auth_url = BoschEBikeAPI.build_auth_url(self._code_challenge)
         return self.async_show_form(
@@ -167,14 +164,14 @@ class BoschEBikeConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         if user_input is not None:
             # Get selected bike
             bike_id = user_input[CONF_BIKE_ID]
-            
+
             # Find bike details
             bike = next((b for b in self._bikes if b["id"] == bike_id), None)
             if not bike:
                 return self.async_abort(reason="bike_not_found")
-            
+
             bike_name = _build_bike_name(bike)
-            
+
             return self.async_create_entry(
                 title=bike_name,
                 data={
@@ -184,53 +181,16 @@ class BoschEBikeConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     CONF_BIKE_NAME: bike_name,
                 },
             )
-        
+
         # Build bike selection options
         bike_options = {
             bike["id"]: _build_bike_name(bike)
             for bike in self._bikes
         }
-        
+
         return self.async_show_form(
             step_id="select_bike",
             data_schema=vol.Schema({
                 vol.Required(CONF_BIKE_ID): vol.In(bike_options),
             }),
         )
-
-    @staticmethod
-    @callback
-    def async_get_options_flow(
-        config_entry: config_entries.ConfigEntry,
-    ) -> config_entries.OptionsFlow:
-        """Get the options flow for this handler."""
-        return BoschEBikeOptionsFlowHandler(config_entry)
-
-
-class BoschEBikeOptionsFlowHandler(config_entries.OptionsFlow):
-    """Handle options flow for Bosch eBike integration."""
-
-    def __init__(self, config_entry: config_entries.ConfigEntry) -> None:
-        """Initialize options flow."""
-        self.config_entry = config_entry
-
-    async def async_step_init(
-        self, user_input: dict[str, Any] | None = None
-    ) -> FlowResult:
-        """Manage the options."""
-        if user_input is not None:
-            return self.async_create_entry(title="", data=user_input)
-
-        # Get current distance unit preference (default to km)
-        current_unit = self.config_entry.options.get(CONF_DISTANCE_UNIT, DISTANCE_UNIT_KM)
-
-        return self.async_show_form(
-            step_id="init",
-            data_schema=vol.Schema({
-                vol.Required(CONF_DISTANCE_UNIT, default=current_unit): vol.In({
-                    DISTANCE_UNIT_KM: "Kilometers",
-                    DISTANCE_UNIT_MI: "Miles",
-                }),
-            }),
-        )
-

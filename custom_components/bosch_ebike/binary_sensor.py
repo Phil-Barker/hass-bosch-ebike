@@ -35,15 +35,19 @@ BINARY_SENSORS: tuple[BoschEBikeBinarySensorEntityDescription, ...] = (
         translation_key="battery_charging",
         name="Battery Charging",
         device_class=BinarySensorDeviceClass.BATTERY_CHARGING,
-        value_fn=lambda data: data.get("battery", {}).get("is_charging"),
+        value_fn=lambda data: bool(data.get("battery", {}).get("is_charging")),
     ),
+    # Note: charger_connected is unreliable - ConnectModule stops updating when
+    # bike is unplugged and powered off, so we never get the "unplugged" event
     BoschEBikeBinarySensorEntityDescription(
         key="charger_connected",
         translation_key="charger_connected",
         name="Charger Connected",
         device_class=BinarySensorDeviceClass.PLUG,
-        value_fn=lambda data: data.get("battery", {}).get("is_charger_connected"),
+        value_fn=lambda data: bool(data.get("battery", {}).get("is_charger_connected")),
+        entity_registry_enabled_default=False,  # Disabled - unreliable due to ConnectModule behavior
     ),
+    # Lock and alarm sensors are unreliable - need further API exploration
     BoschEBikeBinarySensorEntityDescription(
         key="lock_enabled",
         translation_key="lock_enabled",
@@ -54,6 +58,7 @@ BINARY_SENSORS: tuple[BoschEBikeBinarySensorEntityDescription, ...] = (
             if data.get("bike", {}).get("is_locked") is not None
             else data.get("bike", {}).get("lock_enabled")
         ),
+        entity_registry_enabled_default=False,  # Disabled - unreliable, needs investigation
     ),
     BoschEBikeBinarySensorEntityDescription(
         key="alarm_enabled",
@@ -61,6 +66,7 @@ BINARY_SENSORS: tuple[BoschEBikeBinarySensorEntityDescription, ...] = (
         name="Alarm Enabled",
         # No device_class - just show On/Off
         value_fn=lambda data: data.get("bike", {}).get("alarm_enabled"),
+        entity_registry_enabled_default=False,  # Disabled - unreliable, needs investigation
     ),
 )
 
@@ -135,16 +141,31 @@ class BoschEBikeBinarySensor(CoordinatorEntity[BoschEBikeDataUpdateCoordinator],
             return None
         
         if self.entity_description.value_fn is not None:
-            return self.entity_description.value_fn(self.coordinator.data)
+            value = self.entity_description.value_fn(self.coordinator.data)
+            
+            # Log state changes for critical sensors
+            if self.entity_description.key in ("charger_connected", "battery_charging"):
+                if not hasattr(self, "_last_logged_state") or self._last_logged_state != value:
+                    _LOGGER.info(
+                        "Binary sensor %s state: %s (previous: %s)",
+                        self.entity_description.key,
+                        value,
+                        getattr(self, "_last_logged_state", "unknown"),
+                    )
+                    self._last_logged_state = value
+            
+            return value
         
         return None
 
     @property
     def available(self) -> bool:
         """Return if entity is available."""
+        # Entity is available if coordinator succeeded
+        # Even if individual values are None, we want to show the entity
+        # (it will just show as Off/Unknown)
         return (
             self.coordinator.last_update_success
             and self.coordinator.data is not None
-            and self.is_on is not None
         )
 

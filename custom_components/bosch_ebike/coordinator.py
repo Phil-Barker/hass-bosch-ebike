@@ -39,7 +39,7 @@ class BoschEBikeDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
     async def _async_update_data(self) -> dict[str, Any]:
         """Fetch data from Bosch eBike API."""
         try:
-            _LOGGER.debug("Fetching data for bike %s", self.bike_id)
+            _LOGGER.info("=== COORDINATOR UPDATE TRIGGERED for bike %s ===", self.bike_id)
             
             # Fetch bike profile (static info + last known battery state)
             profile_data = await self.api.get_bike_profile(self.bike_id)
@@ -56,8 +56,20 @@ class BoschEBikeDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             # Combine the data
             combined_data = self._combine_bike_data(profile_data, soc_data)
             
-            _LOGGER.debug("Successfully fetched bike data: battery=%s%%", 
-                         combined_data.get("battery", {}).get("level_percent"))
+            _LOGGER.info(
+                "=== COORDINATOR UPDATE COMPLETE: battery=%s%%, charging=%s, charger_connected=%s ===", 
+                combined_data.get("battery", {}).get("level_percent"),
+                combined_data.get("battery", {}).get("is_charging"),
+                combined_data.get("battery", {}).get("is_charger_connected"),
+            )
+            
+            # Log lock/alarm status for debugging
+            _LOGGER.info(
+                "Lock status: is_locked=%s, lock_enabled=%s, alarm_enabled=%s",
+                combined_data.get("bike", {}).get("is_locked"),
+                combined_data.get("bike", {}).get("lock_enabled"),
+                combined_data.get("bike", {}).get("alarm_enabled"),
+            )
             
             return combined_data
             
@@ -140,7 +152,9 @@ class BoschEBikeDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                     combined["battery"]["is_charger_connected"] = soc_data.get("chargerConnected")
                 
                 # Add live-only data
-                combined["battery"]["reachable_range_km"] = soc_data.get("reachableRange")
+                reachable_range_raw = soc_data.get("reachableRange")
+                _LOGGER.debug("Reachable range raw data: %s (type: %s)", reachable_range_raw, type(reachable_range_raw))
+                combined["battery"]["reachable_range_km"] = reachable_range_raw
                 combined["battery"]["remaining_energy_rider_wh"] = soc_data.get("remainingEnergyForRider")
                 
                 # Update odometer from live data if available

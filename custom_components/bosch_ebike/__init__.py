@@ -45,8 +45,16 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         bike_name=bike_name,
     )
     
+    _LOGGER.info(
+        "Created coordinator for %s with update interval: %s",
+        bike_name,
+        coordinator.update_interval,
+    )
+    
     # Fetch initial data
+    _LOGGER.info("Performing initial data refresh for %s", bike_name)
     await coordinator.async_config_entry_first_refresh()
+    _LOGGER.info("Initial data refresh complete for %s", bike_name)
     
     # Store coordinator in hass.data
     hass.data.setdefault(DOMAIN, {})
