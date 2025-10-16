@@ -1,0 +1,10 @@
+{
+  "name": "Bosch eBike Flow",
+  "content_in_root": false,
+  "filename": "bosch_ebike",
+  "render_readme": true,
+  "domains": ["sensor", "binary_sensor"],
+  "iot_class": "cloud_polling",
+  "homeassistant": "2024.1.0"
+}
+

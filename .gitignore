@@ -19,6 +19,7 @@ DEPLOYMENT_SETUP.md
 SSH_TROUBLESHOOTING.md
 GIT_STATUS.md
 DEVELOPMENT_STATUS.md
+HACS_SUBMISSION.md
 
 # Data files (from API testing)
 activities_*.json

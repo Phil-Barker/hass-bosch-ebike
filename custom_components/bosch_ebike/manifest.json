@@ -1,13 +1,14 @@
 {
   "domain": "bosch_ebike",
-  "name": "Bosch eBike",
-  "codeowners": ["@phil"],
+  "name": "Bosch eBike Flow",
+  "codeowners": ["@Phil-Barker"],
   "config_flow": true,
-  "documentation": "https://github.com/your-repo/bosch-ebike",
+  "documentation": "https://github.com/Phil-Barker/hass-bosch-ebike",
+  "issue_tracker": "https://github.com/Phil-Barker/hass-bosch-ebike/issues",
   "integration_type": "device",
   "iot_class": "cloud_polling",
   "requirements": [],
-  "version": "0.1.0",
+  "version": "1.0.0",
   "dependencies": []
 }
 

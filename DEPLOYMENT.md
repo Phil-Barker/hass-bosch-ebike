@@ -71,7 +71,7 @@ HA_HOST=192.168.1.100 HA_PORT=22222 ./deploy-dev.sh
 ### What the Script Does
 
 1. ✅ Tests SSH connection to your Home Assistant
-2. 📦 Syncs `custom_components/bosch_ebike/` to HA via rsync
+2. 📦 Syncs `custom_components/bosch_ebike/` to HA (via rsync if available, falls back to scp)
 3. 🔄 Optionally restarts Home Assistant to load changes
 4. 📊 Shows status and next steps
 
@@ -102,11 +102,13 @@ nano custom_components/bosch_ebike/api.py
 #### Cannot connect via SSH
 
 **Check SSH add-on is running:**
+
 1. Home Assistant → Settings → Add-ons
 2. SSH add-on should be "Started"
 3. Check the port in add-on configuration
 
 **Test SSH manually:**
+
 ```bash
 ssh root@homeassistant.local
 # or
@@ -114,6 +116,7 @@ ssh root@192.168.1.100
 ```
 
 **Configure SSH keys (optional but recommended):**
+
 ```bash
 # Generate key if you don't have one
 ssh-keygen -t ed25519
@@ -125,11 +128,13 @@ ssh-copy-id root@homeassistant.local
 #### Wrong directory structure
 
 If you're using Home Assistant Container (Docker), you might need:
+
 ```bash
 HA_CONFIG_DIR=/config ./deploy-dev.sh
 ```
 
 For Home Assistant Core (Python venv):
+
 ```bash
 HA_CONFIG_DIR=/home/homeassistant/.homeassistant ./deploy-dev.sh
 ```
@@ -137,11 +142,13 @@ HA_CONFIG_DIR=/home/homeassistant/.homeassistant ./deploy-dev.sh
 #### Integration doesn't appear after deployment
 
 1. **Verify files were copied:**
+
    ```bash
    ssh root@homeassistant.local "ls -la /config/custom_components/bosch_ebike/"
    ```
 
 2. **Check for errors in logs:**
+
    ```bash
    ssh root@homeassistant.local "ha core logs"
    ```
@@ -156,6 +163,7 @@ HA_CONFIG_DIR=/home/homeassistant/.homeassistant ./deploy-dev.sh
 #### Permission denied
 
 Make sure deploy script is executable:
+
 ```bash
 chmod +x deploy-dev.sh
 ```
@@ -193,6 +201,7 @@ ssh root@homeassistant.local "ha core restart"
 ### Production Deployment
 
 For production use, users should install via:
+
 - **HACS** (Home Assistant Community Store) - recommended
 - **Manual installation** - copy to custom_components and restart
 
@@ -201,4 +210,3 @@ The `deploy-dev.sh` script is for development iteration only.
 ---
 
 **Next:** After successful deployment, see [DEVELOPMENT_STATUS.md](DEVELOPMENT_STATUS.md) for testing Phase 1.
-
