@@ -46,15 +46,15 @@ You'll see a long URL starting with `https://identity.bosch.com/...`
 
 After logging in, one of two things will happen:
 
-**Option A: Blank page or error message**
+#### Option A: Blank page or error message
 
 - This is **perfect!** Continue to Step 5.
 
-**Option B: Page with "Cannot open page" or similar**
+#### Option B: Page with "Cannot open page" or similar
 
 - This is also **perfect!** Continue to Step 5.
 
-**Option C: Nothing happens**
+#### Option C: Nothing happens
 
 - The page might just sit there. That's okay, continue to Step 5.
 
@@ -115,13 +115,13 @@ The code is the long string of characters after `code=` in the URL.
 
 **Example URL:**
 
-```
+```text
 onebikeapp-ios://com.bosch.ebike.onebikeapp/oauth2redirect?code=eyJhbGciOiJSUzI1NiIsImtpZCI6IjEyMzQ1...
 ```
 
 **What to copy:** Only copy everything after `code=`, which would be:
 
-```
+```text
 eyJhbGciOiJSUzI1NiIsImtpZCI6IjEyMzQ1...
 ```
 
@@ -162,10 +162,58 @@ This is why we say **you must use a desktop browser!** Mobile devices intercept 
 
 ### "My code doesn't work / Authentication failed"
 
-1. Make sure you copied the **entire** code (it's very long!)
-2. Make sure you didn't accidentally copy `code=` - just the part after it
-3. Make sure there are no extra spaces at the beginning or end
-4. The code expires after a few minutes - if it's been a while, start over and get a fresh code
+This is the most common issue. Here's how to diagnose:
+
+#### 1. Check Home Assistant Logs
+
+- Go to **Settings** → **System** → **Logs**
+- Search for `bosch_ebike` or `authentication`
+- Look for error messages like:
+  - `Token exchange failed (400): invalid_grant` - **Code expired or already used** (most common!)
+  - `Token exchange failed (401)` - Authentication issue
+  - Other specific errors
+
+#### 2. Common causes
+
+##### Code expired (most common)
+
+- OAuth codes typically expire in **60-90 seconds**
+- From the moment you see the failed redirect, you have ~1 minute
+- **Solution:** Start over and paste the code immediately
+
+##### Code already used
+
+- You can only use each code once
+- If you tried before and it failed, you need a new code
+- **Solution:** Start over from Step 1 to get a fresh code
+
+##### Missing characters
+
+- The code is **VERY long** (500-1000+ characters)
+- It contains dots/periods (.) and hyphens (-) - these are important!
+- **Solution:** Triple-click the URL to select all, or carefully drag-select the entire code
+
+##### Extra characters
+
+- Make sure when you paste, there are no:
+  - Spaces at the beginning or end
+  - Line breaks or newlines
+  - The text `code=` itself (just the value after it)
+  - URL encoding like `%3D` or `%2F`
+
+#### 3. How to succeed
+
+1. Have Home Assistant config flow open and ready
+2. Open browser with Developer Tools already open on Network tab
+3. Paste the auth URL and log in quickly
+4. As soon as you see the failed redirect, copy the code immediately
+5. Paste it in Home Assistant within 30 seconds
+6. Click Submit
+
+#### 4. Still not working?
+
+- Share the error from Home Assistant logs
+- Report on [GitHub Issue #2](https://github.com/Phil-Barker/hass-bosch-ebike/issues/2)
 
 ### "I don't have a desktop/laptop computer"
 
