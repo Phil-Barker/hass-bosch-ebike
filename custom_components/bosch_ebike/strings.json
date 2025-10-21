@@ -7,7 +7,7 @@
       },
       "auth": {
         "title": "Authenticate with Bosch",
-        "description": "**IMPORTANT:** Copy the URL below and paste it into a new browser tab (don't click the link directly):\n\n`{auth_url}`\n\n1. Log in with your Bosch Flow account\n\n2. After logging in, open your browser's Developer Tools (F12)\n\n3. Go to the Network tab and look for a failed redirect request\n\n4. Find the URL that starts with 'onebikeapp-ios://...'\n\n5. Copy just the 'code' parameter from that URL\n   Example: onebikeapp-ios://...?code=**COPY_THIS_PART**\n\n6. Paste the code below:",
+        "description": "⚠️ **YOU MUST USE A DESKTOP/LAPTOP BROWSER** (Chrome, Firefox, Edge, Safari on Mac/PC)\n\n**This will NOT work on mobile devices** - the Flow app will open and you won't see the code.\n\n---\n\n**Step 1:** Copy this URL and paste it into a **new browser tab** on your computer:\n\n`{auth_url}`\n\n**Step 2:** Log in with your Bosch Flow account credentials\n\n**Step 3:** After logging in, the page will try to redirect and fail (this is normal!)\n\n**Step 4:** Right-click anywhere on the error page and select **\"Inspect\"** or press **F12**\n\n**Step 5:** Click the **\"Network\"** tab at the top\n\n**Step 6:** Look for a request that starts with `onebikeapp-ios`\n\n**Step 7:** Click on it and look at the URL. It will look like:\n`onebikeapp-ios://...?code=ABC123XYZ`\n\n**Step 8:** Copy ONLY the code part (the random letters/numbers after `code=`)\n\n**Step 9:** Paste the code below:",
         "data": {
           "code": "Authorization Code"
         }

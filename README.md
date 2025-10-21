@@ -118,14 +118,19 @@ This integration **ONLY** works with Gen 4 Bosch systems using the Flow app:
 
 ### OAuth Setup
 
+⚠️ **IMPORTANT:** You **MUST** use a desktop/laptop browser (not a phone/tablet) for initial setup.
+
 The integration uses OAuth2 for secure authentication:
 
-1. Click "Add Integration" and select "Bosch eBike"
-2. You'll be redirected to the Bosch login page
-3. Log in with your **Bosch eBike Flow** app credentials
-4. Authorize the integration
-5. You'll be redirected back to Home Assistant
-6. Select which bike to monitor (if you have multiple)
+1. Click "Add Integration" and select "Bosch eBike Flow"
+2. **Copy the authorization URL** (don't click it directly)
+3. **Paste it in a new browser tab** on your computer
+4. Log in with your **Bosch eBike Flow** app credentials
+5. Use browser Developer Tools (F12) to extract the authorization code
+6. Paste the code back into Home Assistant
+7. Select which bike to monitor (if you have multiple)
+
+**📖 [Detailed Step-by-Step Authentication Guide](AUTHENTICATION_GUIDE.md)** - Includes screenshots and troubleshooting!
 
 ### Multiple Bikes
 
