@@ -15,6 +15,25 @@ _LOGGER = logging.getLogger(__name__)
 UPDATE_INTERVAL = timedelta(minutes=5)
 
 
+def parse_location(location: dict[str, Any] | None) -> dict[str, Any] | None:
+    """Convert a theft-detection location entry into coordinator data."""
+    if not location:
+        return None
+
+    latitude = location.get("latitude")
+    longitude = location.get("longitude")
+    if latitude is None or longitude is None:
+        return None
+
+    return {
+        "latitude": latitude,
+        "longitude": longitude,
+        "altitude_m": location.get("altitude"),
+        "accuracy_m": location.get("horizontalAccuracy"),
+        "detected_at": location.get("detectedAt"),
+    }
+
+
 class BoschEBikeDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
     """Class to manage fetching Bosch eBike data from the API."""
 
@@ -58,6 +77,11 @@ class BoschEBikeDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             # Combine the data
             combined_data = self._combine_bike_data(profile_data, soc_data)
 
+            # Last known GPS position (ConnectModule theft detection)
+            location_data = await self.api.get_latest_location(self.bike_id)
+            combined_data["location"] = parse_location(location_data)
+            _LOGGER.debug("Location data: %s", combined_data["location"])
+
             _LOGGER.info(
                 "=== COORDINATOR UPDATE COMPLETE: battery=%s%%, charging=%s, charger_connected=%s ===",
                 combined_data.get("battery", {}).get("level_percent"),
@@ -95,6 +119,7 @@ class BoschEBikeDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             drive_unit = bike_attrs.get("driveUnit") or {}
             connected_module = bike_attrs.get("connectedModule") or {}
             remote_control = bike_attrs.get("remoteControl") or {}
+            media_assets = bike_attrs.get("mediaAssets") or {}
 
             # Start with profile data
             combined = {
@@ -114,6 +139,7 @@ class BoschEBikeDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                     "is_locked": (drive_unit.get("lock") or {}).get("isLocked"),
                     "lock_enabled": (drive_unit.get("lock") or {}).get("isEnabled"),
                     "alarm_enabled": connected_module.get("isAlarmFeatureEnabled"),
+                    "picture_url": media_assets.get("bike_picture_url"),
                 },
                 "components": {
                     "drive_unit": {
