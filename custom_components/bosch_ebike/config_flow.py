@@ -13,6 +13,7 @@ from homeassistant.data_entry_flow import FlowResult
 
 from .api import BoschEBikeAPI, BoschEBikeAuthError, BoschEBikeAPIError
 from .const import (
+    AUTH_GUIDE_URL,
     DOMAIN,
     CONF_BIKE_ID,
     CONF_BIKE_NAME,
@@ -73,7 +74,7 @@ class BoschEBikeConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         # Show auth URL and ask for code manually
         return self.async_show_form(
             step_id="auth",
-            description_placeholders={"auth_url": auth_url},
+            description_placeholders={"auth_url": auth_url, "guide_url": AUTH_GUIDE_URL},
             data_schema=vol.Schema({
                 vol.Required(CONF_CODE): str,
             }),
@@ -159,7 +160,7 @@ class BoschEBikeConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         auth_url = BoschEBikeAPI.build_auth_url(self._code_challenge)
         return self.async_show_form(
             step_id="auth",
-            description_placeholders={"auth_url": auth_url},
+            description_placeholders={"auth_url": auth_url, "guide_url": AUTH_GUIDE_URL},
             data_schema=vol.Schema({
                 vol.Required(CONF_CODE): str,
             }),

@@ -7,6 +7,7 @@ AUTH_URL = "https://p9.authz.bosch.com/auth/realms/obc/protocol/openid-connect/a
 TOKEN_URL = "https://p9.authz.bosch.com/auth/realms/obc/protocol/openid-connect/token"
 API_BASE_URL = "https://obc-rider-profile.prod.connected-biking.cloud"
 THEFT_DETECTION_BASE_URL = "https://theft-detection.prod.connected-biking.cloud"
+AUTH_GUIDE_URL = "https://github.com/Phil-Barker/hass-bosch-ebike/blob/main/AUTHENTICATION_GUIDE.md"
 
 # OAuth Configuration
 CLIENT_ID = "one-bike-app"
