@@ -5,7 +5,7 @@ import hashlib
 import base64
 from datetime import datetime, timedelta
 from typing import Any
-from urllib.parse import urlencode
+from urllib.parse import parse_qs, urlencode, urlparse
 
 import aiohttp
 import async_timeout
@@ -34,6 +34,15 @@ class BoschEBikeAPIError(Exception):
 
 class BoschEBikeAuthError(BoschEBikeAPIError):
     """Authentication error."""
+
+
+class BoschEBikeAuthorizationError(BoschEBikeAuthError):
+    """The pasted redirect URL or code does not contain a usable code."""
+
+    def __init__(self, reason: str, message: str) -> None:
+        """Initialize with a config flow error key and a log message."""
+        super().__init__(message)
+        self.reason = reason
 
 
 class BoschEBikeAPI:
@@ -86,6 +95,36 @@ class BoschEBikeAPI:
             "state": state,
         }
         return f"{AUTH_URL}?{urlencode(params)}"
+
+    @staticmethod
+    def extract_authorization_code(user_input: str) -> str:
+        """Extract the authorization code from a pasted redirect URL or code."""
+        # Windows "Copy as cURL (cmd)" escapes special characters with ^
+        value = user_input.strip().replace("^", "")
+
+        if "code=" not in value and "error=" not in value:
+            if not value:
+                raise BoschEBikeAuthorizationError(
+                    "missing_code", "No authorization code entered"
+                )
+            return value
+
+        query = urlparse(value).query or value.split("?", 1)[-1]
+        params = parse_qs(query)
+
+        if "error" in params:
+            description = params.get("error_description", params["error"])[0]
+            raise BoschEBikeAuthorizationError(
+                "authorization_rejected",
+                f"Bosch rejected the login: {description}",
+            )
+
+        code = (params.get("code") or [""])[0]
+        if not code:
+            raise BoschEBikeAuthorizationError(
+                "missing_code", "No authorization code found in the pasted URL"
+            )
+        return code
 
     async def exchange_code_for_token(
         self,

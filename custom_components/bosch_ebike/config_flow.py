@@ -3,7 +3,6 @@ import logging
 from typing import Any
 
 import voluptuous as vol
-from urllib.parse import urlparse, parse_qs
 
 from homeassistant import config_entries
 from homeassistant.const import CONF_ACCESS_TOKEN
@@ -11,7 +10,12 @@ from homeassistant.core import callback
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.data_entry_flow import FlowResult
 
-from .api import BoschEBikeAPI, BoschEBikeAuthError, BoschEBikeAPIError
+from .api import (
+    BoschEBikeAPI,
+    BoschEBikeAPIError,
+    BoschEBikeAuthError,
+    BoschEBikeAuthorizationError,
+)
 from .const import (
     DOMAIN,
     CONF_BIKE_ID,
@@ -86,17 +90,6 @@ class BoschEBikeConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         if user_input is None:
             return self.async_abort(reason="missing_code")
 
-        # Extract authorization code from user input
-        authorization_code = user_input[CONF_CODE].strip()
-
-        # The user might have pasted the complete URL... so we try to parse it
-        if "code=" in authorization_code:
-            query_params = parse_qs(urlparse(authorization_code).query)
-            if "code" not in query_params:
-                return self.async_abort(reason="missing_code")
-            else:
-                authorization_code = query_params["code"][0]
-
         # Get code_verifier from context
         code_verifier = self.context.get("code_verifier")
         if not code_verifier:
@@ -105,6 +98,11 @@ class BoschEBikeConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         errors = {}
 
         try:
+            # Accepts either the full redirect URL or just the code
+            authorization_code = BoschEBikeAPI.extract_authorization_code(
+                user_input[CONF_CODE]
+            )
+
             # Exchange code for tokens
             session = async_get_clientsession(self.hass)
             api = BoschEBikeAPI(session)
@@ -145,6 +143,9 @@ class BoschEBikeConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 # Multiple bikes - let user choose
                 return await self.async_step_select_bike()
 
+        except BoschEBikeAuthorizationError as err:
+            _LOGGER.warning("Unusable authorization input: %s", err)
+            errors["base"] = err.reason
         except BoschEBikeAuthError as err:
             _LOGGER.error("Authentication failed: %s", err)
             errors["base"] = "auth_error"
