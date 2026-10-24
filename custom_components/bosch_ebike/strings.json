@@ -7,9 +7,9 @@
       },
       "auth": {
         "title": "Authenticate with Bosch",
-        "description": "⚠️ **YOU MUST USE A DESKTOP/LAPTOP BROWSER** (Chrome, Firefox, Edge, Safari on Mac/PC)\n\n**This will NOT work on mobile devices** - the Flow app will open and you won't see the code.\n\n---\n\n**Step 1:** Copy this URL and paste it into a **new browser tab** on your computer:\n\n`{auth_url}`\n\n**Step 2:** Log in with your Bosch Flow account credentials\n\n**Step 3:** After logging in, the page will try to redirect and fail (this is normal!)\n\n**Step 4:** Right-click anywhere on the error page and select **\"Inspect\"** or press **F12**\n\n**Step 5:** Click the **\"Network\"** tab at the top\n\n**Step 6:** Look for a request that starts with `onebikeapp-ios`\n\n**Step 7:** Click on it and look at the URL. It will look like:\n`onebikeapp-ios://...?code=ABC123XYZ`\n\n**Step 8:** Copy ONLY the code part (the random letters/numbers after `code=`)\n\n**Step 9:** Paste the code below:",
+        "description": "⚠️ **Use a desktop or laptop browser.** On a phone the Flow app opens instead and you won't see the code.\n\n**Step 1:** Copy this URL into a **new browser tab** (a private/incognito window works best):\n\n`{auth_url}`\n\n**Step 2:** Log in with your Bosch eBike Flow account.\n\n**Step 3:** The page then fails to redirect - this is expected. Press **F12** to open the developer tools and find the address starting with `onebikeapp-ios://`:\n\n- **Chrome / Edge:** open the **Network** tab, click the `oauth2redirect` request and copy the **Request URL**\n- **Firefox:** open the **Console** tab - the message *Prevented navigation to \"onebikeapp-ios://...\"* contains it\n- **Chromium on Linux:** it is also shown in the *xdg-open* prompt or the error that follows it\n\n**Step 4:** Paste the **whole URL** below (just the part after `code=` works too). Be quick - the code expires after about a minute.\n\nStuck? See the [step-by-step guide](https://github.com/Phil-Barker/hass-bosch-ebike/blob/main/AUTHENTICATION_GUIDE.md).",
         "data": {
-          "code": "Authorization Code"
+          "code": "Redirect URL or authorization code"
         }
       },
       "select_bike": {

@@ -129,8 +129,8 @@ The integration uses OAuth2 for secure authentication:
 2. **Copy the authorization URL** (don't click it directly)
 3. **Paste it in a new browser tab** on your computer
 4. Log in with your **Bosch eBike Flow** app credentials
-5. Use browser Developer Tools (F12) to extract the authorization code
-6. Paste the code back into Home Assistant
+5. Use browser Developer Tools (F12) to find the failed `onebikeapp-ios://...?code=...` redirect URL
+6. Paste the whole URL (or just the code) back into Home Assistant
 7. Select which bike to monitor (if you have multiple)
 
 **📖 [Detailed Step-by-Step Authentication Guide](AUTHENTICATION_GUIDE.md)** - Includes screenshots and troubleshooting!

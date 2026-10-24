@@ -25,13 +25,13 @@ This guide will help you through the authentication process step-by-step.
 
 ### Step 2: Copy the Authorization URL
 
-You'll see a long URL starting with `https://identity.bosch.com/...`
+You'll see a long URL starting with `https://p9.authz.bosch.com/...`
 
 **DO NOT click on it directly!**
 
 1. **Highlight the entire URL** by triple-clicking on it
 2. **Copy it** (Ctrl+C on Windows/Linux, Cmd+C on Mac)
-3. **Open a new browser tab**
+3. **Open a new private/incognito window** (this avoids problems with old Bosch logins, or being logged in with a different account)
 4. **Paste the URL** into the address bar
 5. **Press Enter**
 
@@ -97,10 +97,15 @@ Look for a request in the list that starts with **"onebikeapp-ios"** or **"oauth
 
 **Firefox:**
 
-1. Look for `onebikeapp-ios` in the left column
-2. Click on it
-3. Look at the **"URL"** field on the right
-4. You'll see: `onebikeapp-ios://com.bosch.ebike.onebikeapp/oauth2redirect?code=XXXXX`
+Firefox often blocks the redirect before it shows up in the Network tab. If you can't find it there:
+
+1. Switch to the **"Console"** tab
+2. Look for the message: *Prevented navigation to "onebikeapp-ios://com.bosch.ebike.onebikeapp/oauth2redirect?code=XXXXX" due to an unknown protocol*
+3. Copy the URL from inside the quotes
+
+**Chromium/Chrome on Linux:**
+
+You may be asked whether to open the link with `xdg-open`. The redirect URL, including the code, is shown in that prompt or in the system error that follows it.
 
 **Safari:**
 
@@ -109,9 +114,9 @@ Look for a request in the list that starts with **"onebikeapp-ios"** or **"oauth
 3. The URL will be shown at the top
 4. You'll see: `onebikeapp-ios://com.bosch.ebike.onebikeapp/oauth2redirect?code=XXXXX`
 
-### Step 8: Copy the Code
+### Step 8: Copy the URL
 
-The code is the long string of characters after `code=` in the URL.
+Copy the **whole** redirect URL. Home Assistant extracts the code from it for you.
 
 **Example URL:**
 
@@ -119,18 +124,14 @@ The code is the long string of characters after `code=` in the URL.
 onebikeapp-ios://com.bosch.ebike.onebikeapp/oauth2redirect?code=eyJhbGciOiJSUzI1NiIsImtpZCI6IjEyMzQ1...
 ```
 
-**What to copy:** Only copy everything after `code=`, which would be:
+Pasting just the part after `code=` also works.
 
-```text
-eyJhbGciOiJSUzI1NiIsImtpZCI6IjEyMzQ1...
-```
+**The URL will be LONG** - usually 500-1000+ characters. That's normal!
 
-**The code will be LONG** - usually 500-1000+ characters. That's normal!
-
-### Step 9: Paste the Code into Home Assistant
+### Step 9: Paste the URL into Home Assistant
 
 1. Go back to your Home Assistant tab
-2. **Paste the code** into the **"Authorization Code"** field
+2. **Paste the URL** into the **"Redirect URL or authorization code"** field
 3. Click **"Submit"**
 
 ### Step 10: Select Your Bike
@@ -198,8 +199,7 @@ This is the most common issue. Here's how to diagnose:
 - Make sure when you paste, there are no:
   - Spaces at the beginning or end
   - Line breaks or newlines
-  - The text `code=` itself (just the value after it)
-  - URL encoding like `%3D` or `%2F`
+  - URL encoding like `%3D` or `%2F` in the code itself
 
 #### 3. How to succeed
 
