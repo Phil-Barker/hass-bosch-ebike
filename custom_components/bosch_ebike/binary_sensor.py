@@ -47,18 +47,15 @@ BINARY_SENSORS: tuple[BoschEBikeBinarySensorEntityDescription, ...] = (
         value_fn=lambda data: bool(data.get("battery", {}).get("is_charger_connected")),
         entity_registry_enabled_default=False,  # Disabled - unreliable due to ConnectModule behavior
     ),
-    # Lock and alarm sensors are unreliable - need further API exploration
+    # Whether the eBike Lock feature is switched on, not whether the bike is
+    # currently locked: the API always returns isLocked as null. No LOCK
+    # device class, as HA would show "enabled" as "Unlocked".
     BoschEBikeBinarySensorEntityDescription(
         key="lock_enabled",
         translation_key="lock_enabled",
         name="Lock Enabled",
-        device_class=BinarySensorDeviceClass.LOCK,
-        value_fn=lambda data: (
-            data.get("bike", {}).get("is_locked") 
-            if data.get("bike", {}).get("is_locked") is not None
-            else data.get("bike", {}).get("lock_enabled")
-        ),
-        entity_registry_enabled_default=False,  # Disabled - unreliable, needs investigation
+        value_fn=lambda data: data.get("bike", {}).get("lock_enabled"),
+        entity_registry_enabled_default=False,
     ),
     BoschEBikeBinarySensorEntityDescription(
         key="alarm_enabled",
