@@ -22,6 +22,8 @@
     },
     "error": {
       "auth_error": "Authentication failed. Please try again.",
+      "authorization_rejected": "Bosch rejected the login, usually because the login page was open too long. Start the setup again in a private/incognito window and log in straight away.",
+      "missing_code": "No authorization code found. Paste the whole onebikeapp-ios://...?code=... redirect URL, or just the part after code=.",
       "api_error": "Failed to communicate with Bosch servers. Please try again later.",
       "no_bikes": "No eBikes found on your account. Make sure your bike has a ConnectModule and is registered in the Bosch Flow app.",
       "bike_not_found": "Selected bike not found.",
@@ -29,7 +31,9 @@
     },
     "abort": {
       "already_configured": "This eBike is already configured.",
-      "bike_not_found": "The selected bike could not be found."
+      "bike_not_found": "The selected bike could not be found.",
+      "missing_code": "No authorization code was entered. Please start the setup again.",
+      "missing_verifier": "The setup session expired. Please start the setup again."
     }
   },
   "options": {
@@ -41,4 +45,3 @@
     }
   }
 }
-
