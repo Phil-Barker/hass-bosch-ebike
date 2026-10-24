@@ -121,30 +121,6 @@ class BoschEBikeConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 _LOGGER.error("No bikes found for this account")
                 errors["base"] = "no_bikes"
 
-            if not errors:
-                # Store tokens for next step
-                self.context["access_token"] = api.access_token
-                self.context["refresh_token"] = api.refresh_token
-
-                # If only one bike, auto-select it
-                if len(self._bikes) == 1:
-                    bike = self._bikes[0]
-                    bike_id = bike["id"]
-                    bike_name = _build_bike_name(bike)
-
-                    return self.async_create_entry(
-                        title=bike_name,
-                        data={
-                            CONF_ACCESS_TOKEN: api.access_token,
-                            CONF_REFRESH_TOKEN: api.refresh_token,
-                            CONF_BIKE_ID: bike_id,
-                            CONF_BIKE_NAME: bike_name,
-                        },
-                    )
-
-                # Multiple bikes - let user choose
-                return await self.async_step_select_bike()
-
         except BoschEBikeAuthError as err:
             _LOGGER.error("Authentication failed: %s", err)
             errors["base"] = "auth_error"
@@ -154,6 +130,20 @@ class BoschEBikeConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         except Exception as err:  # pylint: disable=broad-except
             _LOGGER.exception("Unexpected error: %s", err)
             errors["base"] = "unknown"
+
+        # Kept outside the try block: an already configured bike aborts the
+        # flow by raising AbortFlow, which the broad except would swallow
+        if not errors:
+            # Store tokens for next step
+            self.context["access_token"] = api.access_token
+            self.context["refresh_token"] = api.refresh_token
+
+            # If only one bike, auto-select it
+            if len(self._bikes) == 1:
+                return await self._async_create_bike_entry(self._bikes[0])
+
+            # Multiple bikes - let user choose
+            return await self.async_step_select_bike()
 
         # Show form again with errors or regenerate auth URL
         auth_url = BoschEBikeAPI.build_auth_url(self._code_challenge)
@@ -179,27 +169,43 @@ class BoschEBikeConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             if not bike:
                 return self.async_abort(reason="bike_not_found")
 
-            bike_name = _build_bike_name(bike)
+            return await self._async_create_bike_entry(bike)
 
-            return self.async_create_entry(
-                title=bike_name,
-                data={
-                    CONF_ACCESS_TOKEN: self.context["access_token"],
-                    CONF_REFRESH_TOKEN: self.context["refresh_token"],
-                    CONF_BIKE_ID: bike_id,
-                    CONF_BIKE_NAME: bike_name,
-                },
-            )
-
-        # Build bike selection options
+        # Build bike selection options, skipping bikes that are already set up
+        configured_bike_ids = {
+            entry.data.get(CONF_BIKE_ID) for entry in self._async_current_entries()
+        }
         bike_options = {
             bike["id"]: _build_bike_name(bike)
             for bike in self._bikes
+            if bike["id"] not in configured_bike_ids
         }
+        if not bike_options:
+            return self.async_abort(reason="already_configured")
 
         return self.async_show_form(
             step_id="select_bike",
             data_schema=vol.Schema({
                 vol.Required(CONF_BIKE_ID): vol.In(bike_options),
             }),
+        )
+
+    async def _async_create_bike_entry(self, bike: dict[str, Any]) -> FlowResult:
+        """Create the config entry for a bike, unless it is already set up."""
+        bike_id = bike["id"]
+
+        await self.async_set_unique_id(bike_id)
+        self._abort_if_unique_id_configured()
+        # Entries created before unique IDs were set only have the bike ID in data
+        self._async_abort_entries_match({CONF_BIKE_ID: bike_id})
+
+        bike_name = _build_bike_name(bike)
+        return self.async_create_entry(
+            title=bike_name,
+            data={
+                CONF_ACCESS_TOKEN: self.context["access_token"],
+                CONF_REFRESH_TOKEN: self.context["refresh_token"],
+                CONF_BIKE_ID: bike_id,
+                CONF_BIKE_NAME: bike_name,
+            },
         )
