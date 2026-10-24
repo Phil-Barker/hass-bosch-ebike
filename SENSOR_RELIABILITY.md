@@ -42,10 +42,10 @@ These sensors are disabled because they don't provide accurate state change even
    - **Automation impact:** Can't trigger on "charger unplugged" events reliably
 
 2. **Lock Enabled**
-   - **Issue:** Unclear which API field represents lock state accurately
-   - **Data available:** `isLocked` (current state?) and `isEnabled` (feature enabled?)
-   - **Current behavior:** Shows as "unlocked" even when bike is physically locked
-   - **Status:** Needs further API exploration
+   - **Shows:** Whether the eBike Lock feature is switched on (On/Off), from `isEnabled`
+   - **Does not show:** Whether the bike is currently locked. The API always returns `isLocked` as `null` ([#23](https://github.com/Phil-Barker/hass-bosch-ebike/issues/23))
+   - **Previous behavior:** Versions up to v1.1.0 used the lock device class, so "feature enabled" was displayed as "Unlocked"
+   - **Status:** A real lock state needs a different API (see `anti-theft-lock` below)
 
 3. **Alarm Enabled**
    - **Issue:** Unclear if this updates reliably
