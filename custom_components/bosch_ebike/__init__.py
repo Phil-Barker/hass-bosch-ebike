@@ -9,6 +9,7 @@ from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from .api import BoschEBikeAPI
 from .const import DOMAIN, CONF_BIKE_ID, CONF_BIKE_NAME, CONF_REFRESH_TOKEN
 from .coordinator import BoschEBikeDataUpdateCoordinator
+from .picture import BoschEBikePictureView
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -16,6 +17,7 @@ _LOGGER = logging.getLogger(__name__)
 PLATFORMS: list[Platform] = [
     Platform.SENSOR,
     Platform.BINARY_SENSOR,
+    Platform.DEVICE_TRACKER,
 ]
 
 
@@ -65,6 +67,11 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         "bike_name": bike_name,
     }
     
+    # Serve the bike picture scaled for round entity pictures (once for all bikes)
+    if not hass.data.get(f"{DOMAIN}_picture_view"):
+        hass.http.register_view(BoschEBikePictureView(hass))
+        hass.data[f"{DOMAIN}_picture_view"] = True
+
     # Set up platforms
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     

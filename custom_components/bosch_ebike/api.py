@@ -16,11 +16,13 @@ from .const import (
     AUTH_URL,
     TOKEN_URL,
     API_BASE_URL,
+    THEFT_DETECTION_BASE_URL,
     CLIENT_ID,
     REDIRECT_URI,
     SCOPE,
     ENDPOINT_BIKE_PROFILE,
     ENDPOINT_STATE_OF_CHARGE,
+    ENDPOINT_LATEST_LOCATIONS,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -186,6 +188,7 @@ class BoschEBikeAPI:
         self,
         method: str,
         endpoint: str,
+        base_url: str = API_BASE_URL,
         **kwargs: Any,
     ) -> dict[str, Any]:
         """Make an API request."""
@@ -200,7 +203,7 @@ class BoschEBikeAPI:
             "Content-Type": "application/json",
         })
         
-        url = f"{API_BASE_URL}{endpoint}"
+        url = f"{base_url}{endpoint}"
         
         try:
             async with async_timeout.timeout(10):
@@ -271,6 +274,27 @@ class BoschEBikeAPI:
         except BoschEBikeAPIError:
             # 404 is expected when bike is offline
             return None
+
+    async def get_latest_location(self, bike_id: str) -> dict[str, Any] | None:
+        """Get the last known GPS location reported by the ConnectModule."""
+        _LOGGER.debug("Fetching latest location for %s", bike_id)
+        try:
+            response = await self._api_request(
+                "GET",
+                ENDPOINT_LATEST_LOCATIONS,
+                base_url=THEFT_DETECTION_BASE_URL,
+                params={"bikeId": bike_id},
+            )
+        except BoschEBikeAPIError:
+            # Location is only available with ConnectModule + Flow+ subscription
+            return None
+
+        if not response:
+            return None
+
+        # Newest location comes first
+        locations = response.get("locations") or []
+        return locations[0] if locations else None
 
     async def get_battery_data(self, bike_id: str) -> dict[str, Any]:
         """Get comprehensive battery data (tries both endpoints)."""

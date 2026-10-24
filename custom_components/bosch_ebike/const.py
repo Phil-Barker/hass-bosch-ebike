@@ -6,6 +6,7 @@ DOMAIN = "bosch_ebike"
 AUTH_URL = "https://p9.authz.bosch.com/auth/realms/obc/protocol/openid-connect/auth"
 TOKEN_URL = "https://p9.authz.bosch.com/auth/realms/obc/protocol/openid-connect/token"
 API_BASE_URL = "https://obc-rider-profile.prod.connected-biking.cloud"
+THEFT_DETECTION_BASE_URL = "https://theft-detection.prod.connected-biking.cloud"
 
 # OAuth Configuration
 CLIENT_ID = "one-bike-app"
@@ -16,6 +17,7 @@ SCOPE = "openid offline_access"
 ENDPOINT_BIKE_PROFILE = "/v1/bike-profile"
 ENDPOINT_STATE_OF_CHARGE = "/v1/state-of-charge"
 ENDPOINT_PROFILE = "/v1/profile"
+ENDPOINT_LATEST_LOCATIONS = "/v0/latest-locations"
 
 # Update intervals
 DEFAULT_SCAN_INTERVAL = 300  # 5 minutes (ConnectModule updates every 5 min)

@@ -19,6 +19,10 @@ class MockDataUpdateCoordinator:
         if 'update_interval' in kwargs:
             self.update_interval = kwargs['update_interval']
 
+    def __class_getitem__(cls, item):
+        # Allow DataUpdateCoordinator[dict[str, Any]] in class definitions
+        return cls
+
 
 # Create comprehensive mocks
 mock_ha = MagicMock()
@@ -32,6 +36,9 @@ mock_ha.const.Platform.SENSOR = "sensor"
 mock_ha.const.Platform.BINARY_SENSOR = "binary_sensor"
 mock_ha.const.CONF_ACCESS_TOKEN = "access_token"
 mock_ha.const.CONF_REFRESH_TOKEN = "refresh_token"
+mock_ha.components = MagicMock()
+mock_ha.components.http = MagicMock()
+mock_ha.components.http.HomeAssistantView = object
 mock_ha.helpers = MagicMock()
 mock_ha.helpers.update_coordinator = MagicMock()
 mock_ha.helpers.update_coordinator.DataUpdateCoordinator = MockDataUpdateCoordinator
@@ -44,6 +51,8 @@ sys.modules['homeassistant'] = mock_ha
 sys.modules['homeassistant.core'] = mock_ha.core
 sys.modules['homeassistant.config_entries'] = mock_ha.config_entries
 sys.modules['homeassistant.const'] = mock_ha.const
+sys.modules['homeassistant.components'] = mock_ha.components
+sys.modules['homeassistant.components.http'] = mock_ha.components.http
 sys.modules['homeassistant.helpers'] = mock_ha.helpers
 sys.modules['homeassistant.helpers.update_coordinator'] = mock_ha.helpers.update_coordinator
 sys.modules['homeassistant.helpers.aiohttp_client'] = mock_ha.helpers.aiohttp_client

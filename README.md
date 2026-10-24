@@ -34,6 +34,7 @@ Monitor and control your Bosch eBike directly from Home Assistant! Track battery
 - **Reachable Range** - Estimated range per riding mode (when bike is online)
 - **Software Versions** - Track firmware versions of all components
 - **Component Details** - Serial numbers and product info
+- **Location** - Device tracker with the last GPS position reported by the ConnectModule (latitude, longitude, accuracy, altitude and detection time), shown with the bike picture from your Bosch Flow profile
 
 ### ⚡ Smart Features
 
@@ -230,6 +231,15 @@ entities:
     name: Total Distance
   - entity: sensor.your_bike_charge_cycles
     name: Charge Cycles
+```
+
+### Map Card Example
+
+```yaml
+type: map
+entities:
+  - entity: device_tracker.your_bike_location
+hours_to_show: 24
 ```
 
 ## Troubleshooting
