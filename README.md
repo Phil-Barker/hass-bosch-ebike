@@ -71,14 +71,16 @@ This integration is **ONLY** for bikes using the **Bosch eBike Flow** system (Ge
 - 🏠 **Home Assistant** 2024.1.0 or newer
 - 🌐 Internet connection for cloud API access
 
-### Compatible Bosch Systems (Gen 4 Only)
+### Compatible Bosch Systems (Gen 4 / Gen 5)
 
-This integration **ONLY** works with Gen 4 Bosch systems using the Flow app:
+This integration **ONLY** works with Gen 4 / Gen 5 Bosch systems using the Flow app:
 
-- ✅ Performance Line CX (Gen 4)
+- ✅ Performance Line CX (Gen 4 / Gen 5)
+- ✅ Bosch Performance Line SX (Gen 5)
+- ✅ Bosch Performance Line PX (Gen 5)
 - ✅ Performance Line (Gen 4)  
 - ✅ Cargo Line (Gen 4)
-- ✅ Any Gen 4 system with ConnectModule installed
+- ✅ Any Gen 4 and Gen 5 system with ConnectModule installed
 
 **Not Compatible:**
 
