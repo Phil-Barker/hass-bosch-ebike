@@ -8,7 +8,7 @@ set -e  # Exit on error
 HA_HOST="${HA_HOST:-homeassistant.local}"  # Set via environment or default
 HA_USER="${HA_USER:-root}"                  # Home Assistant SSH user
 HA_PORT="${HA_PORT:-22}"                    # SSH port
-HA_CONFIG_DIR="/config"                     # Home Assistant config directory
+HA_CONFIG_DIR="${HA_CONFIG_DIR:-/config}"   # Home Assistant config directory
 
 # Colors for output
 GREEN='\033[0;32m'

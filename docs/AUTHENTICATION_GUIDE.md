@@ -176,6 +176,12 @@ This is the most common issue. Here's how to diagnose:
 
 #### 2. Common causes
 
+##### "Bosch rejected the login"
+
+- The pasted URL contains `error=...` instead of `code=...`, for example `error=temporarily_unavailable&error_description=authentication_expired`
+- Bosch sends this when the login session went stale: the login page was open too long, an old setup link was reused, or the browser still had an old Bosch login stored
+- **Solution:** Close the setup dialog, start **Add Integration** again to get a fresh link, open it in a **private/incognito window** and log in straight away
+
 ##### Code expired (most common)
 
 - OAuth codes typically expire in **60-90 seconds**
