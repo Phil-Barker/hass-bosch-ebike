@@ -8,7 +8,7 @@ Monitor your Bosch eBike directly in Home Assistant! Track battery level, chargi
 
 - 🔌 **ConnectModule hardware** (~€100-150) - sold separately, NOT included with most bikes
 - 💳 **Flow+ subscription** (~€30-50/year) - required for cloud connectivity
-- 📱 **Bosch eBike Flow app** (Gen 4 systems only)
+- 📱 **Bosch eBike Flow app** (Gen 4 / Gen 5 smart system)
 
 **This will NOT work with:**
 
@@ -27,6 +27,7 @@ Monitor your Bosch eBike directly in Home Assistant! Track battery level, chargi
 - **Total Distance** - Odometer reading
 - **Charge Cycles** - Number of full charge cycles
 - **Lifetime Energy Delivered** - Total kWh delivered over the bike's lifetime
+- **Location** - Device tracker with the last GPS position reported by the ConnectModule, for zones and the map card
 
 ### 🔋 Additional Sensors (Disabled by Default)
 
@@ -60,7 +61,7 @@ Monitor your Bosch eBike directly in Home Assistant! Track battery level, chargi
 
 ### Software
 
-- **Bosch eBike Flow app** (Gen 4 only)
+- **Bosch eBike Flow app** (Gen 4 / Gen 5 smart system, e.g. Performance Line CX, SX, PX and Cargo Line)
 - **Home Assistant** 2024.1.0 or newer
 
 ## Installation
