@@ -16,6 +16,8 @@ SCOPE = "openid offline_access"
 
 # API Endpoints
 ENDPOINT_BIKE_PROFILE = "/v1/bike-profile"
+# v2 lists every bike on the account; v1 can omit some (issue #35)
+ENDPOINT_BIKE_PROFILE_V2 = "/v2/bike-profile"
 ENDPOINT_STATE_OF_CHARGE = "/v1/state-of-charge"
 ENDPOINT_PROFILE = "/v1/profile"
 ENDPOINT_LATEST_LOCATIONS = "/v0/latest-locations"
