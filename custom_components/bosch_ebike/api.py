@@ -22,6 +22,7 @@ from .const import (
     REDIRECT_URI,
     SCOPE,
     ENDPOINT_BIKE_PROFILE,
+    ENDPOINT_BIKE_PROFILE_V2,
     ENDPOINT_STATE_OF_CHARGE,
     ENDPOINT_LATEST_LOCATIONS,
 )
@@ -44,6 +45,11 @@ class BoschEBikeAuthorizationError(BoschEBikeAuthError):
         """Initialize with a config flow error key and a log message."""
         super().__init__(message)
         self.reason = reason
+
+
+def _v2_bike_to_v1_resource(bike: dict[str, Any]) -> dict[str, Any]:
+    """Wrap a v2 bike profile in the v1 JSON:API resource shape used elsewhere."""
+    return {"id": bike["id"], "type": "BikeProfile", "attributes": bike}
 
 
 class BoschEBikeAPI:
@@ -289,22 +295,58 @@ class BoschEBikeAPI:
     async def get_bikes(self) -> list[dict[str, Any]]:
         """Get all bikes for the authenticated user."""
         _LOGGER.debug("Fetching bike list")
+        try:
+            response = await self._api_request("GET", ENDPOINT_BIKE_PROFILE_V2)
+        except BoschEBikeAuthError:
+            raise
+        except BoschEBikeAPIError as err:
+            _LOGGER.debug("v2 bike list unavailable, falling back to v1: %s", err)
+            response = None
+
+        # v2 returns a plain list of bike profiles
+        if isinstance(response, list):
+            bikes = [
+                _v2_bike_to_v1_resource(bike)
+                for bike in response
+                if isinstance(bike, dict) and bike.get("id")
+            ]
+            if bikes:
+                _LOGGER.debug("Found %d bike(s)", len(bikes))
+                return bikes
+
         response = await self._api_request("GET", ENDPOINT_BIKE_PROFILE)
-        
         if not response:
             return []
-        
+
         bikes = response.get("data", [])
-        _LOGGER.debug("Found %d bike(s)", len(bikes))
+        _LOGGER.debug("Found %d bike(s) via v1", len(bikes))
         return bikes
 
     async def get_bike_profile(self, bike_id: str) -> dict[str, Any] | None:
         """Get detailed bike profile."""
         _LOGGER.debug("Fetching bike profile for %s", bike_id)
+        v2_error: BoschEBikeAPIError | None = None
+        try:
+            response = await self._api_request(
+                "GET", f"{ENDPOINT_BIKE_PROFILE_V2}/{bike_id}"
+            )
+        except BoschEBikeAuthError:
+            raise
+        except BoschEBikeAPIError as err:
+            _LOGGER.debug("v2 bike profile unavailable, falling back to v1: %s", err)
+            v2_error = err
+            response = None
+
+        if isinstance(response, dict) and response.get("id"):
+            return {"data": _v2_bike_to_v1_resource(response)}
+
         response = await self._api_request(
             "GET",
             f"{ENDPOINT_BIKE_PROFILE}/{bike_id}"
         )
+        # v1 404s for bikes it doesn't list, so the v2 failure is the real cause
+        if response is None and v2_error:
+            raise v2_error
         return response
 
     async def get_state_of_charge(self, bike_id: str) -> dict[str, Any] | None:
