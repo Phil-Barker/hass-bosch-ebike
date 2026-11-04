@@ -1,4 +1,5 @@
 """API client for Bosch eBike Flow."""
+import asyncio
 import logging
 import secrets
 import hashlib
@@ -231,15 +232,20 @@ class BoschEBikeAPI:
                     response.raise_for_status()
                     return await response.json()
                     
+        # Logged at debug only: callers decide whether a failure is an error,
+        # e.g. location is optional and fails for bikes without Flow+
         except aiohttp.ClientResponseError as err:
             if err.status == 404:
                 _LOGGER.debug("Resource not found (404): %s", endpoint)
                 return None
-            _LOGGER.error("API request error: %s", err)
+            _LOGGER.debug("API request error for %s: %s", endpoint, err)
             raise BoschEBikeAPIError(f"API request failed: {err}") from err
         except aiohttp.ClientError as err:
-            _LOGGER.error("Connection error: %s", err)
+            _LOGGER.debug("Connection error for %s: %s", endpoint, err)
             raise BoschEBikeAPIError(f"Connection failed: {err}") from err
+        except asyncio.TimeoutError as err:
+            _LOGGER.debug("Request timed out: %s", endpoint)
+            raise BoschEBikeAPIError(f"Request timed out: {endpoint}") from err
 
     async def get_bikes(self) -> list[dict[str, Any]]:
         """Get all bikes for the authenticated user."""
