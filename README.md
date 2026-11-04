@@ -133,7 +133,7 @@ The integration uses OAuth2 for secure authentication:
 6. Paste the whole URL (or just the code) back into Home Assistant
 7. Select which bike to monitor (if you have multiple)
 
-**📖 [Detailed Step-by-Step Authentication Guide](AUTHENTICATION_GUIDE.md)** - Includes screenshots and troubleshooting!
+**📖 [Detailed Step-by-Step Authentication Guide](docs/AUTHENTICATION_GUIDE.md)** - Includes screenshots and troubleshooting!
 
 ### Multiple Bikes
 
@@ -160,7 +160,7 @@ When the bike is unplugged, powered off, and stationary, the ConnectModule goes 
 - 🔋 **Perfect for:** Monitoring charge sessions and creating smart charging automations
 - ⚠️ **Limited when:** Bike is stored unplugged and powered off
 
-For detailed sensor reliability information, see [SENSOR_RELIABILITY.md](SENSOR_RELIABILITY.md).
+For detailed sensor reliability information, see [docs/SENSOR_RELIABILITY.md](docs/SENSOR_RELIABILITY.md).
 
 ## Example Automations
 
@@ -303,7 +303,7 @@ logger:
 - 🐛 **Report Bugs:** [GitHub Issues](https://github.com/Phil-Barker/hass-bosch-ebike/issues)
 - 💬 **Discussions:** [GitHub Discussions](https://github.com/Phil-Barker/hass-bosch-ebike/discussions)
 - 📖 **Documentation:** [Wiki](https://github.com/Phil-Barker/hass-bosch-ebike/wiki)
-- 🤝 **Contributing:** [DEPLOYMENT.md](DEPLOYMENT.md) for development setup
+- 🤝 **Contributing:** [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) for development setup, and [docs/BIKE_PROFILE_API.md](docs/BIKE_PROFILE_API.md) for how the integration reads bikes from the Bosch API
 
 ### Support Development
 
