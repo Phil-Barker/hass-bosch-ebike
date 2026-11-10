@@ -1,8 +1,24 @@
-# Deployment Guide
+# Development Guide
+
+How to run the tests and try your changes on a real Home Assistant instance. Coding agents should also read [AGENTS.md](../AGENTS.md).
+
+## Running the Tests
+
+The tests don't need Home Assistant installed: `tests/conftest.py` replaces the Home Assistant modules with mocks.
+
+```bash
+uv venv .venv
+uv pip install -r requirements-dev.txt
+.venv/bin/python -m pytest -q
+```
+
+Plain `python3 -m venv .venv && .venv/bin/pip install -r requirements-dev.txt` works too. See [tests/README.md](../tests/README.md) for what the tests cover.
+
+GitHub CI runs HACS and Hassfest validation only, not the tests, so run them locally before opening a PR.
 
 ## Development Deployment to Home Assistant
 
-Quick deployment script for syncing the integration to your Home Assistant instance during development.
+Quick deployment script for syncing the integration to your Home Assistant instance during development. Run the commands below from the repository root.
 
 ### Prerequisites
 
@@ -206,7 +222,3 @@ For production use, users should install via:
 - **Manual installation** - copy to custom_components and restart
 
 The `deploy-dev.sh` script is for development iteration only.
-
----
-
-**Next:** After successful deployment, see [DEVELOPMENT_STATUS.md](DEVELOPMENT_STATUS.md) for testing Phase 1.

@@ -87,7 +87,7 @@ Based on JWT token audiences, we may have access to:
 - `navigation-routeservice` - Route planning
 - `bcm-configuration-service` - Bike configuration
 
-See `exploration/explore_lock_api.py` for lock/alarm API exploration script.
+Lock/alarm exploration scripts are kept locally in the gitignored `exploration/` folder and are not part of the repository.
 
 ## Testing Lock/Alarm Sensors
 
